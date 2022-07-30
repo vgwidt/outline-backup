@@ -1,0 +1,6 @@
+#Include port in server if necessary (example: 192.168.1.200:8080)
+#Time out is in seconds, you may need to increase for large exports
+server = "192.168.1.200"
+secure = false
+apikey = "123456789"
+timeout = 300
