@@ -1,3 +1,5 @@
+mod error;
+
 use std::io::Read;
 use serde_json::{Value, json};
 use serde_derive::Deserialize;
@@ -22,15 +24,13 @@ async fn main() {
     let mut response = build_post_request("collections.export_all", &config).send();
     let mut response_text = response.await.unwrap().text().await.unwrap();
     let mut response_body_json: Value = serde_json::from_str(&response_text).unwrap();
-    
-    //check for errors
-    //Status 429 rate limit exceeded
-    if response_body_json["status"] == 429 {
-        println!("Rate limit exceeded");
-        std::process::exit(1);
-    }
 
-    //get id from "data:" { "fileOperation": "id" }, check for rate limit or other errors not implemented yet
+    //print formatted json
+    println!("{}", serde_json::to_string_pretty(&response_body_json).unwrap());
+
+    error::validate_response(&response_body_json["status"].to_string(), &response_body_json["error"].to_string());
+
+    //get id from "data:" { "fileOperation": "id" }
     let id = response_body_json["data"]["fileOperation"]["id"].as_str().unwrap();
 
     //body
@@ -76,7 +76,7 @@ async fn main() {
             
             //extract url from response between <Resource> and </Resource> from the Minio error
             let url = res_text.split("<Resource>").nth(1).unwrap().split("</Resource>").nth(0).unwrap();
-            let link = config.server + &url;
+            let link = config.server.to_string() + &url;
             println!("{}", link);
             //download file from link and write to test.zip
             let mut file = std::fs::File::create("outline-backup.zip").unwrap();
@@ -97,6 +97,15 @@ async fn main() {
         let mut cursor = Cursor::new(res);
         std::io::copy(&mut cursor, &mut file).unwrap();
     }
+
+    //validate and move file if path specified
+
+    //delete the backup from outline
+    response = build_post_request("fileOperations.delete", &config).body(body.to_string()).send();
+    response_text = response.await.unwrap().text().await.unwrap();
+    let deleteResponseBodyJson: Value = serde_json::from_str(&response_text).unwrap();
+    println!("{}", deleteResponseBodyJson);
+
 }
 
 fn build_post_request(apicall: &str, config: &Config) -> reqwest::RequestBuilder {
