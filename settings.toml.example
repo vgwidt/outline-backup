@@ -1,6 +1,8 @@
 #Include port in server if necessary (example: 192.168.1.200:8080)
 #Time out is in seconds, you may need to increase for large exports
+#Using an absolute path will result in a full copy and delete rather than a simply rename.  Use relative paths if possible.
 server = "192.168.1.200"
 secure = false
 apikey = "123456789"
 timeout = 300
+location = ""

@@ -12,6 +12,7 @@ struct Config {
     secure: bool,
     apikey: String,
     timeout: u64,
+    location: String,
 }
 
 const CONFIGFILE: &str = "settings.toml";
@@ -98,7 +99,7 @@ async fn main() {
         std::io::copy(&mut cursor, &mut file).unwrap();
     }
 
-    //validate and move file if path specified
+    move_backup(&config.location);
 
     //delete the backup from outline
     response = build_post_request("fileOperations.delete", &config).body(body.to_string()).send();
@@ -134,18 +135,29 @@ fn get_config() -> Config {
     return config;
 }
 
-// fn move_backup() {
-//     if config.location.is_some() {
-//         //Verify config.location path exists
-//         let path = std::path::Path::new(config.location.as_ref().unwrap());
-//         if !path.exists() {
-//             println!("Path does not exist");
-//             std::process::exit(1);
-//         }
-//         //move outline-backup.zip to path and rename with date
-//         //get time from chrono
-//         let time = chrono::Local::now();
-//         let time_str = time.format("%Y-%m-%d-%H-%M-%S").to_string();
-//         std::fs::rename("outline-backup.zip", &path.join("outline-backup-".to_owned() + &time_str + ".zip")).unwrap(); 
-//     }
-// }
+fn move_backup(fileloc: &String) {
+
+    let time = chrono::Local::now();
+    let time_str = time.format("%Y-%m-%d-%H-%M-%S").to_string();
+
+        //Verify config.location path exists - if "" it should determine path doesn't exist but might break in some cases (testing needed)
+        let path = std::path::Path::new(&fileloc);
+        if !path.exists() {
+            println!("Path does not exist or not specified, renaming only");
+            //just rename it
+            std::fs::rename("outline-backup.zip", "outline-backup-".to_owned() + &time_str + ".zip").unwrap(); 
+        }
+        else {
+            let time = chrono::Local::now();
+            let time_str = time.format("%Y-%m-%d-%H-%M-%S").to_string();
+            
+            //absolute meaning C:\ or starts with /
+            if path.is_absolute() {
+                std::fs::copy("outline-backup.zip", &path.join("outline-backup-".to_owned() + &time_str + ".zip")).unwrap();
+                std::fs::remove_file("outline-backup.zip").unwrap();
+            }
+            else {
+            std::fs::rename("outline-backup.zip", &path.join("outline-backup-".to_owned() + &time_str + ".zip")).unwrap(); 
+            }
+    }
+}

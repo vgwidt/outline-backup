@@ -1,4 +1,4 @@
-Light backup tool for Outline wiki  (https://github.com/outline/outline).  Makes export_all request, gets the fileOperation ID, checks the status until it is complete, then downloads it.
+Light backup tool for Outline wiki  (https://github.com/outline/outline).  Makes export_all request, gets the fileOperation ID, checks the status until it is complete, downloads it, then renames and moves it.
 
 Using reqwest results in an error when using Minio (too many auth methods), but that error contains the JWT link so we extract that and use a simple get request to download it.  The program checks if the response length is of error length, if so, converts the response to text and analyzes it for the error and proceeds to extract the download URL.  Otherwise, it simply proceeds to copy the bytes provided from the redirect to outline-backup.zip.  Tested on hosted and self-hosted verson 0.65.2.
 
@@ -10,7 +10,6 @@ Be careful as rate limiting for full export requests has been added to Outline r
 4. Run
 
 ## To-Do
-* Add optional backup location
 * Debugging
 * Proper error handling
 * Allow for time-based automation
