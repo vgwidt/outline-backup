@@ -6,11 +6,12 @@ Be careful as rate limiting for full export requests has been added to Outline r
 
 1. Build using Cargo
 2. Generate API key in Outline
-3. Fill out settings.toml (see settings.toml.example)
-4. Run
+3. Run and generate settings.toml file on first run (stores in %APPDATA%\Outback or ~/.config/Outback)
 
 ## To-Do
-* Debugging
-* Proper error handling
-* Allow for time-based automation
-* Allow for action-based automation
+* Switch to menu with arguments for automatic backups
+* Debugging and logging
+* Improved error handling
+* Run-as-service features
+ * Allow for time-based automation
+ * Allow for action-based automation
