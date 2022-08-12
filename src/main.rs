@@ -15,6 +15,8 @@ struct Config {
     location: String,
 }
 
+const CONFIG_FILE_NAME: &str = "config.toml";
+
 #[tokio::main]
 async fn main() {
     let config = get_config();
@@ -145,24 +147,23 @@ fn build_post_request(apicall: &str, config: &Config) -> reqwest::RequestBuilder
 
 fn get_config() -> Config {
     //set config file folder
-
-    let filename = "settings.toml";
+    
     let mut config_file = String::new();
     if cfg!(windows) {
         //create Outline folder in APPDATA if it doesnt exist
         let mut path = std::env::var("APPDATA").unwrap();
-        path.push_str("\\outline_backup\\");
+        path.push_str("\\outline-backup\\");
         if !std::path::Path::new(&path).exists() {
             std::fs::create_dir_all(&path).unwrap();
         }
-        config_file = path + filename;
+        config_file = path + CONFIG_FILE_NAME;
     } else {
         let mut path = std::env::var("HOME").unwrap();
-        path.push_str("/.config/Outline/");
+        path.push_str("/.config/outline-backup/");
         if !std::path::Path::new(&path).exists() {
             std::fs::create_dir_all(&path).unwrap();
         }
-        config_file = path + filename;
+        config_file = path + CONFIG_FILE_NAME;
     }
 
     println!("{}", config_file);
@@ -294,7 +295,7 @@ fn create_settings_file(config_file: &String) -> Result<(), std::io::Error> {
         Ok(_) => {
             return Ok(());
         }
-        Err(e) => match std::fs::write("settings.toml", config_str) {
+        Err(e) => match std::fs::write(CONFIG_FILE_NAME, config_str) {
             Ok(_) => {
                 return Ok(());
             }
