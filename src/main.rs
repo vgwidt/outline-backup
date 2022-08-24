@@ -86,44 +86,17 @@ async fn main() {
         //convert res from bytes to text then check if it contains "<Error><Code>InvalidRequest</Code><Message>
         let res_text = String::from_utf8(res.to_vec()).unwrap();
         if res_text.contains("<Error><Code>InvalidRequest</Code>") {
-            println!("{}", res_text);
-            //This uses some magic to actually download the file. Outline generates Jwt auth token in URL, but the redirect to Minio fails
-            //because of too many authentication methods (works fine in Curl?) So we just use a get request with the Jwt token in the URL,
-            //which we can get by inducing the error from Minio.
-
-            //extract url from response between <Resource> and </Resource> from the Minio error
-            let url = res_text
-                .split("<Resource>")
-                .nth(1)
-                .unwrap()
-                .split("</Resource>")
-                .nth(0)
-                .unwrap();
-            let link = config.server.to_string() + &url;
-            println!("{}", link);
-            //download file from link and write to test.zip
-            let mut file = std::fs::File::create("outline-backup.zip").unwrap();
-            let client = Client::new();
-            let response_text = client
-                .get(link)
-                .send()
-                .await
-                .unwrap()
-                .bytes()
-                .await
-                .unwrap();
-            let mut cursor = Cursor::new(response_text);
-
-            std::io::copy(&mut cursor, &mut file).unwrap();
+            println!("InvalidRequest")
         } else {
             println!("Another error occured");
         }
-    } else {
-        //Download regularly
-        let mut file = std::fs::File::create("outline-backup.zip").unwrap();
-        let mut cursor = Cursor::new(res);
-        std::io::copy(&mut cursor, &mut file).unwrap();
-    }
+    } 
+
+    //Download regularly
+    let mut file = std::fs::File::create("outline-backup.zip").unwrap();
+    let mut cursor = Cursor::new(res);
+    std::io::copy(&mut cursor, &mut file).unwrap();
+
 
     move_backup(&config.location);
 
@@ -139,7 +112,7 @@ async fn main() {
 fn build_post_request(apicall: &str, config: &Config) -> reqwest::RequestBuilder {
     let mut post = reqwest::Client::new().post(config.server.to_owned() + "/api/" + apicall);
     post = post.header("Content-Type", "application/json");
-    post = post.header("authorization", "Bearer ".to_owned() + &config.apikey);
+    post = post.header("authorization", "bearer ".to_owned() + &config.apikey);
     post = post.header("Accept", "application/json");
 
     return post;
